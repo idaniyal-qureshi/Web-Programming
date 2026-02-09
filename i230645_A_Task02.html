@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Archery Game</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+        }
+
+        #gameArea {
+            position: relative;
+            width: 600px;
+            height: 350px;
+            margin: 20px auto;
+            background: white;
+            border: 2px solid black;
+            overflow: hidden;
+        }
+
+        #target {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: red;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #arrow {
+            position: absolute;
+            width: 30px;
+            height: 5px;
+            background: brown;
+            top: 50%;
+            left: 0;
+            display: none;
+        }
+
+        #info {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Simple Archery Game</h2>
+
+<div id="gameArea">
+    <div id="arrow"></div>
+    <div id="target"></div>
+</div>
+
+<div id="info">
+    Score: <span id="score">0</span> |
+    Time Left: <span id="time">30</span>
+</div>
+
+<br>
+<button id="shootBtn">Shoot Arrow</button>
+<button id="restartBtn">Restart</button>
+
+<script>
+    const target = document.getElementById("target");
+    const arrow = document.getElementById("arrow");
+    const scoreText = document.getElementById("score");
+    const timeText = document.getElementById("time");
+    const shootBtn = document.getElementById("shootBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameOver = false;
+    let targetSpeed = 2;
+    let targetInterval;
+    let timerInterval;
+
+    function moveTarget() {
+        let x = Math.random() * 550;
+        let y = Math.random() * 300;
+        target.style.left = x + "px";
+        target.style.top = y + "px";
+    }
+
+    function startTargetMovement() {
+        targetInterval = setInterval(moveTarget, 1000 / targetSpeed);
+    }
+
+    function shootArrow() {
+        if (gameOver) return;
+
+        arrow.style.display = "block";
+        arrow.style.top = "175px";
+        arrow.style.left = "0px";
+
+        let arrowPos = 0;
+        let shootInterval = setInterval(() => {
+            arrowPos += 10;
+            arrow.style.left = arrowPos + "px";
+
+            if (checkCollision()) {
+                updateScore();
+                clearInterval(shootInterval);
+                arrow.style.display = "none";
+            }
+
+            if (arrowPos > 600) {
+                clearInterval(shootInterval);
+                arrow.style.display = "none";
+            }
+        }, 20);
+    }
+
+    function checkCollision() {
+        const arrowRect = arrow.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+
+        return !(
+            arrowRect.right < targetRect.left ||
+            arrowRect.left > targetRect.right ||
+            arrowRect.bottom < targetRect.top ||
+            arrowRect.top > targetRect.bottom
+        );
+    }
+
+    function updateScore() {
+        score++;
+        scoreText.textContent = score;
+        increaseDifficulty();
+    }
+
+    function increaseDifficulty() {
+        if (score % 3 === 0) {
+            targetSpeed++;
+            clearInterval(targetInterval);
+            startTargetMovement();
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timeText.textContent = timeLeft;
+
+            if (timeLeft === 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function endGame() {
+        gameOver = true;
+        clearInterval(targetInterval);
+        clearInterval(timerInterval);
+        alert("Game Over! Your score: " + score);
+    }
+
+    function restartGame() {
+        score = 0;
+        timeLeft = 30;
+        targetSpeed = 2;
+        gameOver = false;
+
+        scoreText.textContent = score;
+        timeText.textContent = timeLeft;
+
+        clearInterval(targetInterval);
+        clearInterval(timerInterval);
+
+        startTargetMovement();
+        startTimer();
+    }
+
+    shootBtn.addEventListener("click", shootArrow);
+    restartBtn.addEventListener("click", restartGame);
+
+    startTargetMovement();
+    startTimer();
+</script>
+
+</body>
+</html>
